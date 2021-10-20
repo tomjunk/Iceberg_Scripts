@@ -1,0 +1,3 @@
+#include "Iceberg_decode14_rawtpcmonitor.fcl"
+services.DetectorPropertiesService.NumberTimeSamples: 2000
+services.DetectorPropertiesService.ReadOutWindowSize: 2000
