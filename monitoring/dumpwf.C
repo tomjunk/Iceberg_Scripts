@@ -64,6 +64,7 @@ void dumpdigits(std::string const& infilename="iceberg_r008272_sr01_20210228T023
 	  }
       }
   }
+  fclose(outputfile);
 }
 
 
