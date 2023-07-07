@@ -32,8 +32,8 @@ using namespace std;
 
 
 void dumpdigits(std::string const& infilename="iceberg_r008272_sr01_20210228T023206_1_dl1_decode.root", 
-                std::string const& inputtag="tpcrawdecoder:daq",
-		std::string const& outputfilename="run8272binary.dat")
+		std::string const& outputfilename="run8272binary.dat",
+		std::string const& inputtag="tpcrawdecoder:daq")
 {
 
   InputTag rawdigit_tag{ inputtag };
@@ -65,6 +65,7 @@ void dumpdigits(std::string const& infilename="iceberg_r008272_sr01_20210228T023
 	  }
       }
   }
+  fclose(outputfile);
 }
 
 
