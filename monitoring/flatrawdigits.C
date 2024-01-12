@@ -73,8 +73,6 @@ void flatrawdigits(std::string const& infilename="iceberg_r008272_sr01_20210228T
       }
   }
   outputfile.cd();
-  otree.Write();
+  otree.Write("",TObject::kOverwrite);
   outputfile.Close();
 }
-
-
