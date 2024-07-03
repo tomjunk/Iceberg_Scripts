@@ -45,13 +45,13 @@ void adcmm(int runno=13378)
 
   std::string const& inputtag="tpcrawdecoder:daq";
   
-  TCanvas *c1 = (TCanvas*) new TCanvas("c1","c1",800,800);
-  c1->Divide(2,2);
+  TCanvas *c1 = (TCanvas*) new TCanvas("c1","c1",800,1200);
+  c1->Divide(2,3);
 
   size_t evcounter=0;
 
-  TH1F *adcmin = (TH1F*) new TH1F("adcmin",";Channel;Min ADC",1280,-0.5,1279.5);
-  TH1F *adcmax = (TH1F*) new TH1F("adcmax",";Channel;Max ADC",1280,-0.5,1279.5);
+  TH1F *adcmin = (TH1F*) new TH1F("adcmin","Min ADC;Channel;Min ADC",1280,-0.5,1279.5);
+  TH1F *adcmax = (TH1F*) new TH1F("adcmax","Max ADC;Channel;Max ADC",1280,-0.5,1279.5);
 
   for (int i=1;i<=1280;++i)
     {
@@ -62,31 +62,31 @@ void adcmm(int runno=13378)
   vector<string> filenames(1, filename);
 
   for (gallery::Event ev(filenames); !ev.atEnd(); ev.next()) {
-      {
-	auto const& rawdigits = *ev.getValidHandle<vector<raw::RawDigit>>(rawdigit_tag);
-	if (!rawdigits.empty())
-	  {
-	    const size_t nrawdigits = rawdigits.size();
-	    for (size_t ichan=0;ichan<nrawdigits; ++ichan) 
-	      { 
-	        size_t thigh = rawdigits[ichan].Samples()-1; // assume uncompressed
-		size_t ic = rawdigits[ichan].Channel();
+    {
+      auto const& rawdigits = *ev.getValidHandle<vector<raw::RawDigit>>(rawdigit_tag);
+      if (!rawdigits.empty())
+	{
+	  const size_t nrawdigits = rawdigits.size();
+	  for (size_t ichan=0;ichan<nrawdigits; ++ichan) 
+	    { 
+	      size_t thigh = rawdigits[ichan].Samples()-1; // assume uncompressed
+	      size_t ic = rawdigits[ichan].Channel();
 
-		float oldmin = adcmin->GetBinContent(ic);
-		float oldmax = adcmax->GetBinContent(ic);
+	      float oldmin = adcmin->GetBinContent(ic);
+	      float oldmax = adcmax->GetBinContent(ic);
 
-                for (size_t itick=0;itick<=thigh;++itick)
-	          {
-		    //std::cout << "filling histo: " << ichan << " " << ic << " " << itick << std::endl;
-		    float adc = rawdigits[ichan].ADC(itick);
-		    if (adc < oldmin || oldmin <0) oldmin = adc;
-		    if (adc > oldmax) oldmax = adc;
-		  }
-		adcmin->SetBinContent(ic,oldmin);
-		adcmax->SetBinContent(ic,oldmax);
-	      }
-	  }
-      }
+	      for (size_t itick=0;itick<=thigh;++itick)
+		{
+		  //std::cout << "filling histo: " << ichan << " " << ic << " " << itick << std::endl;
+		  float adc = rawdigits[ichan].ADC(itick);
+		  if (adc < oldmin || oldmin <0) oldmin = adc;
+		  if (adc > oldmax) oldmax = adc;
+		}
+	      adcmin->SetBinContent(ic,oldmin);
+	      adcmax->SetBinContent(ic,oldmax);
+	    }
+	}
+    }
     ++evcounter;
   }
 
@@ -97,6 +97,76 @@ void adcmm(int runno=13378)
   int maxmin=0;
   int maxmax=0;
   
+  for (int i=1; i<= adcmin->GetNbinsX(); ++i)
+    {
+      if (i<800)   // induction
+	{
+	  int lmx = adcmax->GetBinContent(i);
+	  int lmn = adcmin->GetBinContent(i);
+	  if (lmn > 0)
+	    {
+	      if (minmin > lmn) minmin = lmn;
+	      if (maxmin < lmn) maxmin = lmn;
+	    }
+	  if (lmx > 0)
+	    {
+	      if (minmax > lmx) minmax = lmx;
+	      if (maxmax < lmx) maxmax = lmx;
+	    }
+	}
+    }
+  
+  TH1F *hmi = (TH1F*) new TH1F("hmi",";Max ADC Induction",maxmax-minmax+1,minmax-0.5,maxmax+0.5);
+  TH1F *hni = (TH1F*) new TH1F("hni",";Min ADC Induction",maxmin-minmin+1,minmin-0.5,maxmin+0.5);
+
+  minmin=16385;
+  minmax=16385;
+  maxmin=0;
+  maxmax=0;
+  
+  for (int i=1; i<= adcmin->GetNbinsX(); ++i)
+    {
+      if (i>=800)   // collection
+	{
+	  int lmx = adcmax->GetBinContent(i);
+	  int lmn = adcmin->GetBinContent(i);
+	  if (lmn > 0)
+	    {
+	      if (minmin > lmn) minmin = lmn;
+	      if (maxmin < lmn) maxmin = lmn;
+	    }
+	  if (lmx > 0)
+	    {
+	      if (minmax > lmx) minmax = lmx;
+	      if (maxmax < lmx) maxmax = lmx;
+	    }
+	}
+    }
+  
+  TH1F *hmc = (TH1F*) new TH1F("hmc",";Max ADC Collection",maxmax-minmax+1,minmax-0.5,maxmax+0.5);
+  TH1F *hnc = (TH1F*) new TH1F("hnc",";Min ADC Collection",maxmin-minmin+1,minmin-0.5,maxmin+0.5);
+    
+  for (int i=1; i<= adcmin->GetNbinsX(); ++i)
+    {
+      if (i<800)
+	{
+	  hmi->Fill(adcmax->GetBinContent(i));
+	  hni->Fill(adcmin->GetBinContent(i));
+	}
+      else
+	{
+	  hmc->Fill(adcmax->GetBinContent(i));
+	  hnc->Fill(adcmin->GetBinContent(i));
+	}
+    }
+
+
+  // once more to get the totals to set the histogram min and max for display
+
+  minmin=16385;
+  minmax=16385;
+  maxmin=0;
+  maxmax=0;
   for (int i=1; i<= adcmin->GetNbinsX(); ++i)
     {
       int lmx = adcmax->GetBinContent(i);
@@ -112,16 +182,6 @@ void adcmm(int runno=13378)
 	  if (maxmax < lmx) maxmax = lmx;
 	}
     }
-  
-  TH1F *hm = (TH1F*) new TH1F("hm",";Max ADC Value",maxmax-minmax+1,minmax-0.5,maxmax+0.5);
-  TH1F *hn = (TH1F*) new TH1F("hn",";Min ADC Value",maxmin-minmin+1,minmin-0.5,maxmin+0.5);
-
-  
-  for (int i=1; i<= adcmin->GetNbinsX(); ++i)
-    {
-      hm->Fill(adcmax->GetBinContent(i));
-      hn->Fill(adcmin->GetBinContent(i));
-    }
 
   // gStyle->SetOptStat(0);
   
@@ -134,17 +194,27 @@ void adcmm(int runno=13378)
   adcmax->SetMaximum(maxmax+10.0);
   adcmax->Draw("hist");
   c1->cd(3);
-  hn->Draw("hist");
+  hni->Draw("hist");
   c1->cd(4);
-  hm->Draw("hist");
+  hmi->Draw("hist");
+  c1->cd(5);
+  hnc->Draw("hist");
+  c1->cd(6);
+  hmc->Draw("hist");
+  
   TString opicfile = "run_";
   opicfile += runno;
   opicfile += "_adcminmax.png";
   c1->Print(opicfile);
 
   std::cout << "Run adc stats: " << runno << " " 
-            << hn->GetMean() << " " 
-            << hn->GetStdDev() << " " 
-            << hm->GetMean() << " " 
-	    << hm->GetStdDev() << std::endl; 
+            << hni->GetMean() << " " 
+            << hni->GetStdDev() << " " 
+            << hmi->GetMean() << " " 
+	    << hmi->GetStdDev() << " " 
+            << hnc->GetMean() << " " 
+            << hnc->GetStdDev() << " " 
+            << hmc->GetMean() << " " 
+	    << hmc->GetStdDev() << " " 
+	    << std::endl; 
 }
