@@ -50,12 +50,21 @@ void adcmm(int runno=13378)
 
   size_t evcounter=0;
 
-  TH1F *adcmin = (TH1F*) new TH1F("adcmin","Min ADC;Channel;Min ADC",1280,-0.5,1279.5);
-  TH1F *adcmax = (TH1F*) new TH1F("adcmax","Max ADC;Channel;Max ADC",1280,-0.5,1279.5);
+  TString minadctitle="Min ADC Run ";
+  minadctitle += runno;
+  minadctitle += ";Channel;Min ADC";
+
+  TString maxadctitle="Max ADC Run ";
+  maxadctitle += runno;
+  maxadctitle += ";Channel;Max ADC";
+
+  TH1F *adcmin = (TH1F*) new TH1F("adcmin",minadctitle,1280,-0.5,1279.5);
+  TH1F *adcmax = (TH1F*) new TH1F("adcmax",maxadctitle,1280,-0.5,1279.5);
 
   for (int i=1;i<=1280;++i)
     {
       adcmin->SetBinContent(i,-1);    // default value when we haven't seen this channel yet.
+      adcmax->SetBinContent(i,-1);    // default value when we haven't seen this channel yet.
     }
 
   InputTag rawdigit_tag{ inputtag };
@@ -88,6 +97,7 @@ void adcmm(int runno=13378)
 	}
     }
     ++evcounter;
+    break; // put this in to run just one event.  Maybe better to do this as it reduces the cosmic-ray contamination and there are enough pulses.
   }
 
   // find the min and max min and max, for defining histogram boundaries
@@ -103,12 +113,12 @@ void adcmm(int runno=13378)
 	{
 	  int lmx = adcmax->GetBinContent(i);
 	  int lmn = adcmin->GetBinContent(i);
-	  if (lmn > 0)
+	  if (lmn >= 0)
 	    {
 	      if (minmin > lmn) minmin = lmn;
 	      if (maxmin < lmn) maxmin = lmn;
 	    }
-	  if (lmx > 0)
+	  if (lmx >= 0)
 	    {
 	      if (minmax > lmx) minmax = lmx;
 	      if (maxmax < lmx) maxmax = lmx;
@@ -116,8 +126,8 @@ void adcmm(int runno=13378)
 	}
     }
   
-  TH1F *hmi = (TH1F*) new TH1F("hmi",";Max ADC Induction",maxmax-minmax+1,minmax-0.5,maxmax+0.5);
-  TH1F *hni = (TH1F*) new TH1F("hni",";Min ADC Induction",maxmin-minmin+1,minmin-0.5,maxmin+0.5);
+  TH1F *hmi = (TH1F*) new TH1F("hmi",";Max ADC Induction",TMath::Min(100,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
+  TH1F *hni = (TH1F*) new TH1F("hni",";Min ADC Induction",TMath::Min(100,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
 
   minmin=16385;
   minmax=16385;
@@ -130,12 +140,12 @@ void adcmm(int runno=13378)
 	{
 	  int lmx = adcmax->GetBinContent(i);
 	  int lmn = adcmin->GetBinContent(i);
-	  if (lmn > 0)
+	  if (lmn >= 0)
 	    {
 	      if (minmin > lmn) minmin = lmn;
 	      if (maxmin < lmn) maxmin = lmn;
 	    }
-	  if (lmx > 0)
+	  if (lmx >= 0)
 	    {
 	      if (minmax > lmx) minmax = lmx;
 	      if (maxmax < lmx) maxmax = lmx;
@@ -143,8 +153,8 @@ void adcmm(int runno=13378)
 	}
     }
   
-  TH1F *hmc = (TH1F*) new TH1F("hmc",";Max ADC Collection",maxmax-minmax+1,minmax-0.5,maxmax+0.5);
-  TH1F *hnc = (TH1F*) new TH1F("hnc",";Min ADC Collection",maxmin-minmin+1,minmin-0.5,maxmin+0.5);
+  TH1F *hmc = (TH1F*) new TH1F("hmc",";Max ADC Collection",TMath::Min(100,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
+  TH1F *hnc = (TH1F*) new TH1F("hnc",";Min ADC Collection",TMath::Min(100,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
     
   for (int i=1; i<= adcmin->GetNbinsX(); ++i)
     {
@@ -171,12 +181,12 @@ void adcmm(int runno=13378)
     {
       int lmx = adcmax->GetBinContent(i);
       int lmn = adcmin->GetBinContent(i);
-      if (lmn > 0)
+      if (lmn >= 0)
 	{
 	  if (minmin > lmn) minmin = lmn;
 	  if (maxmin < lmn) maxmin = lmn;
 	}
-      if (lmx > 0)
+      if (lmx >= 0)
 	{
 	  if (minmax > lmx) minmax = lmx;
 	  if (maxmax < lmx) maxmax = lmx;
@@ -191,7 +201,7 @@ void adcmm(int runno=13378)
   c1->cd(2);
   adcmax->SetStats(0);
   adcmax->SetMinimum(minmax-10.0);
-  adcmax->SetMaximum(maxmax+10.0);
+  adcmax->SetMaximum(maxmax*1.05);
   adcmax->Draw("hist");
   c1->cd(3);
   hni->Draw("hist");
