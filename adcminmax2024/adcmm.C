@@ -126,8 +126,8 @@ void adcmm(int runno=13378)
 	}
     }
   
-  TH1F *hmi = (TH1F*) new TH1F("hmi",";Max ADC Induction",TMath::Min(100,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
-  TH1F *hni = (TH1F*) new TH1F("hni",";Min ADC Induction",TMath::Min(100,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
+  TH1F *hmi = (TH1F*) new TH1F("hmi",";Max ADC Induction",TMath::Min(20,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
+  TH1F *hni = (TH1F*) new TH1F("hni",";Min ADC Induction",TMath::Min(20,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
 
   minmin=16385;
   minmax=16385;
