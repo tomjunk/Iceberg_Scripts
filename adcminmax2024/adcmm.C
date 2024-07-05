@@ -153,8 +153,8 @@ void adcmm(int runno=13378)
 	}
     }
   
-  TH1F *hmc = (TH1F*) new TH1F("hmc",";Max ADC Collection",TMath::Min(100,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
-  TH1F *hnc = (TH1F*) new TH1F("hnc",";Min ADC Collection",TMath::Min(100,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
+  TH1F *hmc = (TH1F*) new TH1F("hmc",";Max ADC Collection",TMath::Min(20,maxmax-minmax+1),minmax-0.5,maxmax+0.5);
+  TH1F *hnc = (TH1F*) new TH1F("hnc",";Min ADC Collection",TMath::Min(20,maxmin-minmin+1),minmin-0.5,maxmin+0.5);
     
   for (int i=1; i<= adcmin->GetNbinsX(); ++i)
     {
